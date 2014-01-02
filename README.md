@@ -5,17 +5,114 @@ a simple but sexy MVC wrapper of koa.
 ### Installation
 ````
 $ npm install koa-scaffold
-// or install globally
-$ sudo npm install koa-scaffold -g
 ````
 
-### Example
+### Quick start
+you could use koa-scaffold in two different styles:
+
+#### Using it as server module
+
+sample code here:
 ````javascript
 var server = require('koa-scaffold');
+
+// init a new server running on default port 3000
+new server({
+        name: 'demo site',
+        database: {
+            name: 'testdb'
+        }
+    })
+    .models(function($db, $Schema){
+        var userModel = new $Schema({
+            name: String,
+            created: Date,
+        });
+        return {
+            user: $db.model('user', userModel)
+        }
+    })
+    .ctrlers(function($models, $Ctrler){
+        return {
+            user: new $Ctrler($models.user)
+        }
+    })
+    .routes(function(app, $ctrlers){
+        app.get('/users', function*(req, res, next){
+            this.body = $ctrlers.user.find({});
+        });
+    })
+    .run();
 ````
 
+#### Using it as project generator
+
+if you don't want to require core server, just make a copy and start server:
+````
+$ git clone https://github.com/turingou/koa-scaffold.git
+$ cd koa-scaffold
+$ vi ./configs/app.json
+$ node app.js
+````
+
+### Command-line tool
+
+use koa-scaffold as cli tool to quick generate project files
+````
+$ [sudo] npm install koa-scaffold -g
+$ mkdir demo-project && cd demo-project
+$ koa-scaffold
+````
+
+### Configs
+
+config param goes here:
+````javascript
+{
+    // site name
+    name : "site name",
+    // site desc
+    desc: 'demo site',
+    // set env to production
+    env: 'production',
+    // url should be provided. check it out in res.locals.root
+    url: 'http://abc.com',
+    // views dir:
+    views: './views',
+    // view engine:
+    "view engine": "jade",
+    // database configs
+    database: {
+        name: 'expressdemo',
+        host: 'http://remoteDB',
+        port: 27111,
+        options: {
+            username: 'test',
+            password: 'testpassword'
+        }
+    }
+}
+````
+then `forever start app.js` or `pm2 start app.js -i max`
+
+### Project structure
+this scaffold of koa provides a simple MVC structure:
+- ctrlers
+    - `index.js` a Ctrler factory which provides base database ctrler functions
+- views
+    - all views in here
+- model
+    - `index.js` open database connection and define models(mongodb)
+- routes
+    - `*.js` app.js routers
+- public
+    - all static files locate here.
+
 ### API
-check this file: `server.js`
+
+- `/server.js`: init a server instance
+- `/models/index.js`: exports a mongodb instance
+- `/ctrlers/index.js`: exports a base ctrler (moogoose)
 
 ### Contributing
 - Fork this repo
