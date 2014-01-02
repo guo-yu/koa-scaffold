@@ -1,25 +1,21 @@
-var http = require('http'),
+var koa = require('koa'),
     path = require('path'),
     _ = require('underscore'),
-    express = require('express'),
-    Depender = require('depender'),
-    less = require('less-middleware'),
-    Resource = require('express-resource'),
+    route = require('koa-route'),
+    logger = require('koa-logger'),
+    serve = require('koa-static'),
+    depender = require('depender'),
     sys = require('./package.json'),
-    json = require('./libs/json'),
-    middlewares = require('./middlewares/index'),
-    routes = require('./routes/index');
+    render = require('./libs/render'),
+    routes = require('./routes/index'),
+    middlewares = require('./middlewares/index');
 
 var defaults = {
+    name: sys.name,
     port: 3000,
     env: 'development',
-    'view engine': 'jade',
     views: path.join(__dirname, '/views'),
     public: path.join(__dirname, '/public'),
-    uploads: path.join(__dirname, '/public/uploads'),
-    uploadsLimit: '20mb',
-    log: ":remote-addr|:date|:method|:url|:status|:res[content-length]|:response-time|\":referrer\"|\":user-agent\"",
-    database: { name: sys.name },
     session: { secret: sys.name }
 };
 
@@ -30,43 +26,28 @@ var dirfinder = function(configs, key) {
 
 var Server = function(configs) {
 
-    var app = express(),
+    var app = koa(),
         settings = _.extend(defaults, configs);
 
-    if (settings.database) json.save(path.join(__dirname, '/configs/database.json'), settings.database);
-    if (settings.session.store) settings.session.store = new require('connect-mongo')(express)({ db: settings.session.secret });
+    // app configs
+    app.name = settings.name;
+    app.env = settings.env;
+    app.keys = [settings.session.secret];
+    
+    // middlewares 
+    app.use(logger());
+    app.use(serve(dirfinder(configs,'public')));
+    app.use(render(dirfinder(configs,'views')));
 
-    // all environments
-    app.set('env', settings.env);
-    app.set('port', _.isNumber(parseInt(settings.port)) ? parseInt(settings.port) : defaults.port);
-    app.set('views', dirfinder(configs,'views'));
-    app.set('view engine', settings['view engine']);
-    app.use(express.favicon());
-    app.use(express.logger('production' !== settings.env ? 'dev' : settings.log));
-    app.use(express.compress());
-    app.use(express.limit(settings.uploadsLimit));
-    app.use(express.bodyParser({keepExtensions: true, uploadDir: dirfinder(configs, 'uploads') }));
-    app.use(express.methodOverride());
-    app.use(express.cookieParser(settings.session.secret));
-    app.use(express.session(settings.session));
-    app.use(less({src: dirfinder(configs,'public') }));
-    app.use(express.static(dirfinder(configs,'public')));
-    app.use(app.router);
-
-    // errors
-    app.use(middlewares.error.logger);
-    app.use(middlewares.error.xhr);
+    // error middlewares
     app.use(middlewares.error.common);
-
-    // locals
-    app.locals.sys = sys;
-    app.locals.site = settings;
-    app.locals.url = ('production' === settings.env) ? settings.url : 'http://localhost:' + app.get('port');
+    app.on('error', middlewares.error.logger);
 
     this.app = app;
-    this.deps = new Depender;
-    this.deps.define('$middlewares', middlewares);
-    if (settings.session.store) this.deps.define('$sessionStore', settings.session.store);
+    this.deps = new depender;
+    this.deps.define('route', route);
+    this.deps.define('middlewares', middlewares);
+    this.port = _.isNumber(parseInt(settings.port)) ? parseInt(settings.port) : defaults.port;
 
     return this;
 }
@@ -87,27 +68,20 @@ Server.prototype.ctrlers = function(init) {
     return this;
 }
 
-// inject app locals
-Server.prototype.locals = function(key, value) {
-    if (this.app && key && value) this.app.locals[key] = value;
-    return this.app.locals;
-}
-
 // define routes
 Server.prototype.routes = function(init) {
     this.deps.define('app', this.app);
     this.deps.use(init && typeof(init) === 'function' ? init : routes);
-    this.app.get('*', middlewares.error.notfound);
+    this.app.use(route.get('*', middlewares.error.notfound));
     return this;
 }
 
 // start instance
 Server.prototype.run = function(port) {
-    var app = this.app;
-    if (_.isEmpty(app.routes)) this.routes();
-    if (port && _.isNumber(parseInt(port))) app.set('port', parseInt(port));
-    http.createServer(app).listen(app.get('port'));
-    return this;
+    if (!this.app) return false;
+    if (_.isEmpty(this.app.routes)) this.routes();
+    if (port && _.isNumber(parseInt(port))) this.port = parseInt(port);
+    return this.app.listen(this.port);
 }
 
 module.exports = Server;

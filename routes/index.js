@@ -1,6 +1,5 @@
-var home = require('./home'),
-    auth = require('../middlewares/auth');
-
-module.exports = function(app, ctrlers) {
-    app.resource(home);
-}
+module.exports = function(app, route) {
+    app.use(route.get('/', function * () {
+        this.body = yield this.render('home');
+    }));
+};

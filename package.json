@@ -21,5 +21,15 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/turingou/koa-scaffold/issues"
+  },
+  "dependencies": {
+    "koa": ">= 0.2.1",
+    "koa-route": "*",
+    "koa-logger": "*",
+    "koa-static": "*",
+    "co-views": "*",
+    "then-jade": "*",
+    "underscore": "*",
+    "depender": "*"
   }
 }
