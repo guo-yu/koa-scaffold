@@ -1,7 +1,6 @@
 {
   "name": "koa-scaffold",
   "version": "0.0.1",
-  "logo": "http://ww4.sinaimg.cn/large/61ff0de3gw1ebtqstxfuvj202g01awea.jpg",
   "description": "a simple but sexy MVC wrapper of koa",
   "main": "server.js",
   "scripts": {
@@ -24,9 +23,13 @@
   },
   "dependencies": {
     "koa": ">= 0.2.1",
-    "koa-route": "*",
+    "koa-router": "*",
     "koa-logger": "*",
     "koa-static": "*",
+    "koa-error": "*",
+    "koa-basic-auth": "*",
+    "koa-session": "*",
+    "koa-etag": "*",
     "co-views": "*",
     "then-jade": "*",
     "underscore": "*",
