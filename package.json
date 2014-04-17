@@ -1,8 +1,8 @@
 {
   "name": "koa-scaffold",
   "version": "0.0.1",
-  "description": "a simple but sexy MVC wrapper of koa",
-  "main": "server.js",
+  "description": "a simple sexy MVC wrapper of koa",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,7 +14,9 @@
     "koa",
     "express",
     "connect",
-    "scaffold"
+    "scaffold",
+    "mvc",
+    "framework"
   ],
   "author": "turing <o.u.turing@gmail.com>",
   "license": "MIT",
@@ -22,17 +24,19 @@
     "url": "https://github.com/turingou/koa-scaffold/issues"
   },
   "dependencies": {
-    "koa": ">= 0.2.1",
+    "depender": "*",
+    "underscore": "*",
+    "koa": "0.5.x",
+    "koa-bodyparser": "*",
+    "koa-methodoverride": "*",
+    "koa-views": "*",
     "koa-router": "*",
     "koa-logger": "*",
     "koa-static": "*",
     "koa-error": "*",
-    "koa-basic-auth": "*",
     "koa-session": "*",
-    "koa-etag": "*",
-    "co-views": "*",
-    "then-jade": "*",
-    "underscore": "*",
-    "depender": "*"
+    "koa-locals": "*",
+    "koa-less": "*",
+    "koa-sass": "*"
   }
 }
