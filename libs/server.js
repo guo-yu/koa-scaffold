@@ -27,6 +27,12 @@ var pkg = require('../package');
 var finder = require('./finder');
 var defaults = require('../configs');
 
+var dbs = {};
+dbs.mongodb = require('../dbs/mongodb');
+
+var ctrlers = {};
+ctrlers.mongoose = require('../ctrlers/mongoose');
+
 /**
 *
 * Expose main function
@@ -47,9 +53,11 @@ function Server(configs) {
   var app = koa();
   var devMode = true;
   var settings = _.extend(_.clone(defaults), configs || {});
+  var dbname =  dbs.mongodb.isMongodbUri(settings.database) ? 
+      dbs.mongodb.parseDbname(settings.database) : settings.database.name;
 
   if (!settings.session.secret) {
-    settings.session.secret = settings.database.name;
+    settings.session.secret = dbname;
   }
 
   if (settings.env === 'production') devMode = false;
@@ -60,7 +68,7 @@ function Server(configs) {
   dirs.uploads = finder(configs, 'uploads');
 
   // setup koa settings
-  app.env = settings.env;
+  app.env = settings.env || 'development';
   app.name = settings.name || pkg.name;
   app.keys = [settings.session.secret];
 
@@ -90,10 +98,31 @@ function Server(configs) {
   this.deps = new depender;
   this.settings = settings;
 
-  // if (settings.session.store) {
-  //   this.deps.define('sessionStore', settings.session.store);
-  // }
+  return this;
+}
 
+/**
+*
+* Define data models
+* @init[Function]: the callback function to return model object.
+*
+**/
+Server.prototype.models = function(models) {
+  this.deps.define('Schema', dbs.mongodb.Schema);
+  this.deps.define('db', dbs.mongodb.connect(this.settings.database));
+  this.deps.define('models', this.deps.use(models));
+  return this;
+}
+
+/**
+*
+* Define spec Ctrlers
+* @init[Function]: the callback function to return spec ctrlers.
+*
+**/
+Server.prototype.ctrlers = function(controllers) {
+  this.deps.define('Ctrler', ctrlers.mongoose);
+  this.deps.define('ctrlers', this.deps.use(controllers));
   return this;
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "koa-scaffold",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "a simple sexy MVC wrapper of koa",
   "main": "index.js",
   "scripts": {
@@ -24,11 +24,11 @@
     "url": "https://github.com/turingou/koa-scaffold/issues"
   },
   "dependencies": {
-    "depender": "*",
+    "koa": "0.8.x",
     "underscore": "*",
-    "koa": "0.5.x",
-    "koa-bodyparser": "*",
-    "koa-methodoverride": "*",
+    "depender": "*",
+    "koa-less": "*",
+    "koa-sass": "*",    
     "koa-views": "*",
     "koa-router": "*",
     "koa-logger": "*",
@@ -36,7 +36,7 @@
     "koa-error": "*",
     "koa-session": "*",
     "koa-locals": "*",
-    "koa-less": "*",
-    "koa-sass": "*"
+    "koa-bodyparser": "*",
+    "koa-methodoverride": "*"
   }
 }
